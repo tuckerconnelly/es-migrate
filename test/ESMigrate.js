@@ -124,9 +124,4 @@ test('es-migrate', async nest => {
 
     cleanUp()
   })
-
-  // nest.test('…MIGRATION_ENV', async assert => {
-  //   assert.fail('runs the command on the environment passed, exported from as the migrations/index.js')
-  //   assert.fail('throws an error if the passed environment wasn\'t found on migrations/index.js exports')
-  // })
 })

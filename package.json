@@ -1,10 +1,10 @@
 {
   "name": "es-migrate",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Minimalistic database-agnostic es6 migrations.",
   "bin": "src/index.js",
   "scripts": {
-    "test": "tape-watch test/*.js -r babel-register -r babel-polyfill -R blue-tape -p tap-spec"
+    "test": "tape-watch test/ESMigrate.js -r babel-register -r babel-polyfill -R blue-tape -p tap-spec"
   },
   "repository": {
     "type": "git",
@@ -13,7 +13,10 @@
   "homepage": "https://github.com/tuckerconnelly/es-migrate.git",
   "keywords": [
     "node",
-    "es6"
+    "es6",
+    "es7",
+    "migrations",
+    "migrate"
   ],
   "author": "Tucker Connelly <web@tuckerconnelly.com>",
   "license": "MIT",

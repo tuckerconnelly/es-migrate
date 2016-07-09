@@ -17,10 +17,20 @@ export default class ESMigrate {
   static VALID_COMMANDS = ['up', 'down', 'create']
 
   async run(argv) {
-    const input = Array.isArray(argv) ? minimist(argv) : minimist(argv.split(' '))
+    const input = Array.isArray(argv) ? minimist(argv) : minimist(argv.split(' ').slice(1))
 
-    if (ESMigrate.VALID_COMMANDS.indexOf(input._[1]) === -1) {
-      console.error('Command not recognized. run `es-migrate --help` to see available commands`')
+    if (input._.length === 0) {
+      console.log(`
+Usage:
+  $ es-migrate [up|down|create] [migrationName|count]
+
+\`up\` will run all un-ran migrations. \`down\` will roll back only one at a time, unless a count is supplied.
+`)
+      return
+    }
+
+    if (ESMigrate.VALID_COMMANDS.indexOf(input._[0]) === -1) {
+      console.error(`Command ${input._[0]} not recognized. Use up, down, or create.`)
       return
     }
 
@@ -31,11 +41,11 @@ export default class ESMigrate {
       return
     }
 
-    await this[input._[1]](input)
+    await this[input._[0]](input)
   }
 
   async create(input) {
-    if (!input._[2]) {
+    if (!input._[1]) {
       console.error('You need to specify a name for the migration')
       return
     }
@@ -49,7 +59,7 @@ export default class ESMigrate {
       zeroPad(date.getUTCHours(), 2) +
       zeroPad(date.getUTCMinutes(), 2) +
       zeroPad(date.getUTCSeconds(), 2) +
-      `-${input._[2]}.js`
+      `-${input._[1]}.js`
 
     fs.writeFileSync(
       migrationDir(fileName),
@@ -68,6 +78,7 @@ export default class ESMigrate {
       migration.id = migrationFile.split('.')[0]
 
       if (await this.strategy.hasRan(migration)) return
+      console.log(`Running ${migration.id}`)
       await this.strategy.up(migration)
     })
   }
@@ -76,7 +87,7 @@ export default class ESMigrate {
     const migrationFiles = fs.readdirSync(migrationDir())
     migrationFiles.splice(migrationFiles.indexOf('index.js'), 1)
 
-    const count = input._[2] ? parseInt(input._[2]) : 1
+    const count = input._[1] ? parseInt(input._[1]) : 1
 
     let migration
     await migrationFiles.reverse().slice(0, count).forEach(async migrationFile => {
@@ -84,7 +95,7 @@ export default class ESMigrate {
       migration.id = migrationFile.split('.')[0]
 
       if (! await this.strategy.hasRan(migration)) return
-      console.log(`Rolling back ${migrationFile}`)
+      console.log(`Rolling back ${migration.id}`)
       await this.strategy.down(migration)
     })
   }
