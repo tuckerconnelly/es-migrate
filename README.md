@@ -5,6 +5,7 @@ Minimalistic database-agnostic es6 migrations.
 
 ```
 npm -g i es-migrate
+npm -D i es-migrate
 ```
 
 ```
@@ -18,7 +19,7 @@ Usage:
 
 ## Usage
 
-Create a `migrations/index.js` file:
+`es-migrate` reads a config file at `{cwd}/migrations/index.js`.  Create a file there:
 
 ```js
 import { PGStrategy } from 'es-migrate'
@@ -44,7 +45,7 @@ DB_STRING=postgres://u:p@localhost/test es-migrate up
 
 ## Using with other databases
 
-If you want to connect to MongoDB or something, you'll need to write a custom strategy:
+If you want to connect to another database like MongoDB, you'll need to write a custom strategy:
 
 ```js
 export default class MyStrategy {

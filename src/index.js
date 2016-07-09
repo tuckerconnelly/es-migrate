@@ -1,6 +1,1 @@
-#! /usr/bin/env babel-node
-
-import ESMigrate from './ESMigrate'
-
-const esMigrate = new ESMigrate()
-esMigrate.run(process.argv.slice(2))
+export { default as PGStrategy } from './strategies/PG'

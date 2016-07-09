@@ -8,30 +8,33 @@ export default class PGStrategy {
     this.connectionString = connectionString
   }
 
-  static template = `export default {
-  async up(client) {
+  get template() {
+    return `export default {
+    async up(client) {
+      client.query(``)
+    },
 
-  },
-
-  async down(client) {
-
-  },
-}
+    async down(client) {
+      clientquery(``)
+    },
+  }
 `
+  }
 
   async init() {
-    this.client = await pg.Client(this.connectionString)
+    this.client = new pg.Client(this.connectionString)
+    await this.client.connectPromise()
     await this.client.queryPromise(`
       CREATE TABLE IF NOT EXISTS migrations (
-        version varchar(255) NOT NULL
+        id varchar(255) UNIQUE NOT NULL
       )
     `)
   }
 
-  async check(migration) {
+  async hasRan(migration) {
     const result = await this.client.queryPromise(
-      'SELECT version FROM migrations WHERE version = $1'
-      [migration.version],
+      'SELECT id FROM migrations WHERE id = $1',
+      [migration.id],
     )
 
     return result.rows.length === 1
@@ -41,15 +44,15 @@ export default class PGStrategy {
     await migration.up(this.client)
     await this.client.queryPromise(
       'INSERT INTO migrations VALUES ($1)',
-      [migration.version],
+      [migration.id],
     )
   }
 
   async down(migration) {
     await migration.down(this.client)
     await this.client.queryPromise(
-      'DELETE FROM migrations WHERE version = $1',
-      [migration.version],
+      'DELETE FROM migrations WHERE id = $1',
+      [migration.id],
     )
   }
 

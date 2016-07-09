@@ -41,7 +41,9 @@ Usage:
       return
     }
 
+    await this.strategy.init()
     await this[input._[0]](input)
+    await this.strategy.end()
   }
 
   async create(input) {
@@ -65,22 +67,22 @@ Usage:
       migrationDir(fileName),
       this.strategy.template
     )
+
+    console.log(`Created migrations/${fileName}`)
   }
 
   async up() {
     const migrationFiles = fs.readdirSync(migrationDir())
     migrationFiles.splice(migrationFiles.indexOf('index.js'), 1)
 
-    await this.strategy.init()
-
-    await migrationFiles.forEach(async migrationFile => {
+    await Promise.all(migrationFiles.map(async migrationFile => {
       const migration = require(migrationDir(migrationFile))
       migration.id = migrationFile.split('.')[0]
 
       if (await this.strategy.hasRan(migration)) return
       console.log(`Running ${migration.id}`)
       await this.strategy.up(migration)
-    })
+    }))
   }
 
   async down(input) {
@@ -90,13 +92,13 @@ Usage:
     const count = input._[1] ? parseInt(input._[1]) : 1
 
     let migration
-    await migrationFiles.reverse().slice(0, count).forEach(async migrationFile => {
+    await Promise.all(migrationFiles.reverse().slice(0, count).map(async migrationFile => {
       migration = require(migrationDir(migrationFile))
       migration.id = migrationFile.split('.')[0]
 
       if (! await this.strategy.hasRan(migration)) return
       console.log(`Rolling back ${migration.id}`)
       await this.strategy.down(migration)
-    })
+    }))
   }
 }
