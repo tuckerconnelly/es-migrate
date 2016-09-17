@@ -1,3 +1,4 @@
+import { exec } from 'child_process'
 import Pg from 'pg'
 import coPg from 'co-pg'
 
@@ -46,6 +47,7 @@ export default class PGStrategy {
       'INSERT INTO migrations VALUES ($1)',
       [migration.id],
     )
+    await exec(`pg_dump -s ${this.client.database} > migrations/schema.sql`)
   }
 
   async down(migration) {

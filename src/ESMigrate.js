@@ -72,8 +72,8 @@ Usage:
   }
 
   async up() {
-    const migrationFiles = fs.readdirSync(migrationDir())
-    migrationFiles.splice(migrationFiles.indexOf('index.js'), 1)
+    let migrationFiles = fs.readdirSync(migrationDir())
+    migrationFiles = migrationFiles.filter(fileName => /^\d{14}\-\S+\.js$/.test(fileName))
 
     await Promise.all(migrationFiles.map(async migrationFile => {
       const migration = require(migrationDir(migrationFile))
