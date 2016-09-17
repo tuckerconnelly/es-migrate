@@ -39,7 +39,7 @@ Usage:
 
 \`create\` will make a new migration. \`sync\` will sync to the specified version (if none is given, latest). \`version\` will get the current version.
 
-\`es-migrate version -p\` will get the previous version
+\`es-migrate version -1\` will get the previous version (-2 will get 2 versions ago, etc.)
 `)
       return
     }
