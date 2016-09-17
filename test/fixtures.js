@@ -37,5 +37,15 @@ export function setup(mocks) {
   ESMigrate.__set__('console', defaultedMocks.console)
   ESMigrate.__set__('process', defaultedMocks.process)
 
-  return { esm: new ESMigrate(), mocks: defaultedMocks }
+  const esm = new ESMigrate()
+
+  const oldRun = esm.run
+  esm.run = async (...args) => {
+    await oldRun.apply(esm, args)
+
+    const oneMinute = 60 * 1000
+    MockDate.set(Date.now() + oneMinute)
+  }
+
+  return { esm, mocks: defaultedMocks }
 }
