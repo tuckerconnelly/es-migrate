@@ -1,4 +1,4 @@
-#!/usr/bin/env node_modules/.bin/babel-node --
+#!node_modules/.bin/babel-node --
 
 import ESMigrate from './ESMigrate'
 
