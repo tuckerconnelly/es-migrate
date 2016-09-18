@@ -1,6 +1,6 @@
 {
   "name": "es-migrate",
-  "version": "0.2.12",
+  "version": "0.2.11",
   "description": "Minimalistic database-agnostic es6 migrations.",
   "bin": "lib/cli.js",
   "main": "lib/index.js",
@@ -46,7 +46,9 @@
     "tape": "^4.6.0",
     "tape-watch": "^2.2.3"
   },
-  "peerDependencies": {},
+  "peerDependencies": {
+    "babel-cli": "^6.14.0"
+  },
   "dependencies": {
     "co-pg": "^2.0.0",
     "minimist": "^1.2.0",

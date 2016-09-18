@@ -45,8 +45,6 @@ Then if you wanted to run es-migrate against a different database, you could:
 DB_STRING=postgres://u:p@localhost/test es-migrate sync
 ```
 
-Note! `es-migrate` requires `babel-cli` to be installed globally.
-
 ## Using with other databases
 
 If you want to connect to another database like MongoDB, you'll need to write a custom strategy:
