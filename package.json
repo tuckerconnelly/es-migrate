@@ -47,7 +47,9 @@
     "tape": "^4.6.0",
     "tape-watch": "^2.2.3"
   },
-  "peerDependencies": {},
+  "peerDependencies": {
+    "babel-cli": "^6.14.0"
+  },
   "dependencies": {
     "co-pg": "^2.0.0",
     "minimist": "^1.2.0",
