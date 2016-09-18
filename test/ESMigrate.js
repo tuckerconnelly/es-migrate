@@ -61,31 +61,37 @@ test('es-migrate', async nest => {
         'doesn\'t run migrations that have already run')
     })
 
-    // nest.test('……rolls back migrations', async assert => {
-    //   const { esm } = setup()
-    //   await esm.run('es-migrate create test-migration-1')
-    //   await esm.run('es-migrate create test-migration-2')
-    //   await esm.run('es-migrate create test-migration-3')
-    //   await esm.run('es-migrate create test-migration-4')
-    //   await esm.run('es-migrate sync')
-    //
-    //   await esm.run('es-migrate down')
-    //   const migrationsRunAfterDown = Object.keys(esm.strategy.migrations).length
-    //   const oldDown = esm.strategy.down
-    //   const downStub = sinon.stub().returns(Promise.resolve())
-    //   esm.strategy.down = downStub
-    //   await esm.run('es-migrate down')
-    //   esm.strategy.down = oldDown
-    //   await esm.run('es-migrate down 3')
-    //   const migrationsRunAfterDown3 = Object.keys(esm.strategy.migrations).length
-    //
-    //   assert.equal(migrationsRunAfterDown, 3,
-    //     'rolls back the last migration if no count supplied')
-    //   assert.equal(downStub.callCount, 0,
-    //     'doesn\'t roll back a migration if it\'s in an un-ran state')
-    //   assert.equal(migrationsRunAfterDown3, 2,
-    //     'rolls back {count} migrations that haven\'t been ran yet')
-    // })
+    nest.test('……rolls back migrations', async assert => {
+      const { esm } = setup()
+      const myBirthday = 706669323000
+
+      MockDate.set(myBirthday)
+      await esm.run('es-migrate create down-1')
+      MockDate.set(myBirthday + 1000)
+      await esm.run('es-migrate create down-2')
+      MockDate.set(myBirthday + 2000)
+      await esm.run('es-migrate create down-3')
+      MockDate.set(myBirthday + 3000)
+      await esm.run('es-migrate create down-4')
+      await esm.run('es-migrate sync')
+
+      await esm.run(`es-migrate sync 19920524010205-down-3`)
+      const migrationsRunAfterDown = Object.keys(esm.strategy.migrations).length
+      const oldDown = esm.strategy.down
+      const downStub = sinon.stub().returns(Promise.resolve())
+      esm.strategy.down = downStub
+      await esm.run('es-migrate sync 19920524010205-down-3')
+      esm.strategy.down = oldDown
+      await esm.run('es-migrate sync 19920524010203-down-1')
+      const migrationsRunAfterSyncFirst = Object.keys(esm.strategy.migrations).length
+
+      assert.equal(migrationsRunAfterDown, 3,
+        'rolls back the last migration if no count supplied')
+      assert.equal(downStub.callCount, 0,
+        'doesn\'t roll back a migration if it\'s in an un-ran state')
+      assert.equal(migrationsRunAfterSyncFirst, 1,
+        'rolls back migrations that haven\'t been ran yet')
+    })
   })
 
   nest.test('…version', nest => {

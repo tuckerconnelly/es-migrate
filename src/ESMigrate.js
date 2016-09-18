@@ -52,7 +52,7 @@ Usage:
     try {
       this.strategy = require(migrationDir('index.js'))
     } catch (err) {
-      console.error('Couldn\'t read your setup file at migrations/index.js')
+      console.error('Couldn\'t read your setup file at migrations/index.js', err)
       return
     }
 
@@ -97,7 +97,7 @@ Usage:
   }
 
   _up(input) {
-    const targetVersion = input._[2]
+    const targetVersion = input._[1]
     const tsFromTargetVersion = targetVersion && tsFromVersion(targetVersion)
 
     return this._migrationFiles
@@ -111,26 +111,27 @@ Usage:
         console.log(`Running ${migration.version}`)
         await this.strategy.up(migration)
       })
-      .reduce((prev, curr) => prev.then(curr), Promise.resolve())
+      .reduce((prev, curr) => prev.then(() => curr), Promise.resolve())
   }
 
   _down(input) {
-    if (!input._[2]) return
+    if (!input._[1]) return
 
-    const targetVersion = input._[2]
+    const targetVersion = input._[1]
     const tsFromTargetVersion = targetVersion && tsFromVersion(targetVersion)
 
-    let migration
-    return Promise.all(this._migrationFiles.reverse().map(async migrationFile => {
-      migration = require(migrationDir(migrationFile))
-      migration.version = migrationFile.split('.')[0]
+    return this._migrationFiles.reverse()
+      .map(async migrationFile => {
+        const migration = require(migrationDir(migrationFile))
+        migration.version = migrationFile.split('.')[0]
 
-      if (targetVersion && tsFromVersion(migration.version) <= tsFromTargetVersion) return
-      if (! await this.strategy.hasRan(migration)) return
+        if (targetVersion && tsFromVersion(migration.version) <= tsFromTargetVersion) return
+        if (! await this.strategy.hasRan(migration)) return
 
-      console.log(`Rolling back ${migration.version}`)
-      await this.strategy.down(migration)
-    }))
+        console.log(`Rolling back ${migration.version}`)
+        await this.strategy.down(migration)
+      })
+      .reduce((prev, curr) => prev.then(() => curr), Promise.resolve())
   }
 
   async version() {
