@@ -12,9 +12,11 @@ npm -D i es-migrate
 es-migrate
 
 Usage:
-  $ es-migrate [up|down|create] [migrationName|count]
+  $ es-migrate [create|sync|version] [name|version]
 
-`up` will run all un-ran migrations. `down` will roll back only one at a time, unless a count is supplied.
+`create` will make a new migration. `sync` will sync to the specified version (if none is given, latest). `version` will get the current version.
+
+`es-migrate version -1` will get the previous version (-2 will get 2 versions ago, etc.)
 ```
 
 ## Usage
@@ -34,14 +36,16 @@ Then you can:
 
 ```
 es-migrate create my-migration
-es-migrate up
+es-migrate sync
 ```
 
 Then if you wanted to run es-migrate against a different database, you could:
 
 ```
-DB_STRING=postgres://u:p@localhost/test es-migrate up
+DB_STRING=postgres://u:p@localhost/test es-migrate sync
 ```
+
+Note! `es-migrate` requires `babel-cli` to be installed globally.
 
 ## Using with other databases
 
