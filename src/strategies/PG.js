@@ -5,8 +5,8 @@ import coPg from 'co-pg'
 const pg = coPg(Pg)
 
 export default class PGStrategy {
-  constructor(connectionString) {
-    this.connectionString = connectionString
+  constructor(config) {
+    this._config = config
   }
 
   get template() {
@@ -23,7 +23,7 @@ export default class PGStrategy {
   }
 
   async init() {
-    this.client = new pg.Client(this.connectionString)
+    this.client = new pg.Client(this._config)
     await this.client.connectPromise()
     await this.client.queryPromise(`
       CREATE TABLE IF NOT EXISTS migrations (
