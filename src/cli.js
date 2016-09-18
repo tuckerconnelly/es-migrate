@@ -1,6 +1,4 @@
-#!/usr/bin/env node --
-
-import 'babel-polyfill'
+#!node_modules/.bin/babel-node --
 
 import ESMigrate from './ESMigrate'
 

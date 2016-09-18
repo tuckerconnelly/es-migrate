@@ -24,13 +24,13 @@ Usage:
 `es-migrate` reads a config file at `{cwd}/migrations/index.js`.  Create a file there:
 
 ```js
-const PGStrategy = require('es-migrate').PGStrategy
-const config = require('../lib/config')
+import { PGStrategy } from 'es-migrate'
 
-module.exports = new PGStrategy(config.PG_CONFIG)
+const connectionString = process.env.DB_STRING ||
+  'postgres://username:password@localhost/dbname'
+
+export default new PGStrategy(connectionString)
 ```
-
-(Note: Had some trouble getting babel-node to work across both linux and osx with `#!/usr/bin/env`, so migrations gotta be in node-flavored ES6 for now)
 
 Then you can:
 
@@ -52,12 +52,12 @@ If you want to connect to another database like MongoDB, you'll need to write a 
 ```js
 export default class MyStrategy {
   get template() {
-    return `module.exports = {
-  up(client) {
+    return `export default {
+  async up(client) {
 
   },
 
-  down(client) {
+  async down(client) {
 
   },
 }

@@ -2,12 +2,12 @@
 
 export default class MemoryStrategy {
   get template() {
-    return `module.exports = {
-  up(client) {
+    return `export default {
+  async up(client) {
 
   },
 
-  down(client) {
+  async down(client) {
 
   },
 }
