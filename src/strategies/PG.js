@@ -10,13 +10,13 @@ export default class PGStrategy {
   }
 
   get template() {
-    return `export default {
-    async up(client) {
-      client.query(``)
+    return `module.exports = {
+    up(client) {
+      return client.query(``)
     },
 
-    async down(client) {
-      clientquery(``)
+    down(client) {
+      return client.query(``)
     },
   }
 `

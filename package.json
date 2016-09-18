@@ -29,6 +29,7 @@
     "babel-core": "^6.14.0",
     "babel-eslint": "^6.1.2",
     "babel-plugin-add-module-exports": "^0.2.1",
+    "babel-polyfill": "^6.13.0",
     "babel-preset-es2015": "^6.14.0",
     "babel-preset-stage-1": "^6.13.0",
     "blue-tape": "^1.0.0",
@@ -46,9 +47,7 @@
     "tape": "^4.6.0",
     "tape-watch": "^2.2.3"
   },
-  "peerDependencies": {
-    "babel-cli": "^6.14.0"
-  },
+  "peerDependencies": {},
   "dependencies": {
     "co-pg": "^2.0.0",
     "minimist": "^1.2.0",
