@@ -1,13 +1,14 @@
 {
   "name": "es-migrate",
-  "version": "0.2.6",
+  "version": "0.2.4",
   "description": "Minimalistic database-agnostic es6 migrations.",
   "bin": "lib/cli.js",
   "main": "lib/index.js",
   "scripts": {
     "test": "tape-watch test/*.js test/strategies/*.js -r babel-register -r babel-polyfill -R blue-tape -p tap-spec",
     "build": "babel -d lib src",
-    "build:watch": "babel -d lib src -w"
+    "build:watch": "babel -d lib src -w",
+    "prepublish": "rm -rf lib && npm run build"
   },
   "repository": {
     "type": "git",
