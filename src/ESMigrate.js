@@ -1,4 +1,4 @@
-/* eslint-disable max-len */
+/* eslint-disable max-len, global-require */
 
 const path = require('path')
 const fs = require('fs')
@@ -61,7 +61,7 @@ Usage:
     await this.strategy.end()
   }
 
-  get _migrationFiles() {
+  get _migrationFiles() { // eslint-disable-line class-methods-use-this
     return fs.readdirSync(migrationDir())
       .filter(fileName => /^\d{14}\-\S+\.js$/.test(fileName))
   }
@@ -105,12 +105,13 @@ Usage:
         const migration = require(migrationDir(migrationFile))
         migration.version = migrationFile.split('.')[0]
 
-        if (targetVersion && tsFromVersion(migration.version) > tsFromTargetVersion) return
-        if (await this.strategy.hasRan(migration)) return
+        if (targetVersion && tsFromVersion(migration.version) > tsFromTargetVersion) return Promise.resolve()
+        if (await this.strategy.hasRan(migration)) return Promise.resolve()
 
         console.log(`Running ${migration.version}`)
-        await this.strategy.up(migration)
+        return this.strategy.up(migration)
       })
+      // Run promises in sequence
       .reduce((prev, curr) => prev.then(() => curr), Promise.resolve())
   }
 
@@ -125,12 +126,13 @@ Usage:
         const migration = require(migrationDir(migrationFile))
         migration.version = migrationFile.split('.')[0]
 
-        if (targetVersion && tsFromVersion(migration.version) <= tsFromTargetVersion) return
-        if (! await this.strategy.hasRan(migration)) return
+        if (targetVersion && tsFromVersion(migration.version) <= tsFromTargetVersion) return Promise.resolve()
+        if (!(await this.strategy.hasRan(migration))) return Promise.resolve()
 
         console.log(`Rolling back ${migration.version}`)
-        await this.strategy.down(migration)
+        return this.strategy.down(migration)
       })
+      // Run promises in sequence
       .reduce((prev, curr) => prev.then(() => curr), Promise.resolve())
   }
 

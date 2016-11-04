@@ -9,7 +9,7 @@ export default class PGStrategy {
     this._config = config
   }
 
-  get template() {
+  get template() { // eslint-disable-line class-methods-use-this
     return `export default {
     async up(client) {
       client.query(``)
