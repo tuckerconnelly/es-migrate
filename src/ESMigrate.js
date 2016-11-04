@@ -1,4 +1,4 @@
-/* eslint-disable max-len, global-require */
+/* eslint-disable max-len */
 
 const path = require('path')
 const fs = require('fs')
@@ -26,8 +26,8 @@ function migrationDir(fileName = '') {
   return path.resolve(process.cwd(), 'migrations', fileName)
 }
 
-export default class ESMigrate {
-  static VALID_COMMANDS = ['create', 'sync', 'version']
+module.exports = class ESMigrate {
+  static get VALID_COMMANDS() { return ['create', 'sync', 'version'] }
 
   async run(argv) {
     const input = Array.isArray(argv) ? minimist(argv) : minimist(argv.split(' ').slice(1))
@@ -140,7 +140,7 @@ Usage:
     let i = this._migrationFiles.length - 1
     if (i === -1) return console.error('Couldn\'t get version: no migrations exist yet')
 
-    const toSubtract = process.argv[3] && parseInt(process.argv[3].substr(1))
+    const toSubtract = process.argv && process.argv[3] && parseInt(process.argv[3].substr(1))
     if (toSubtract && i - toSubtract < 0) return console.error(`Couldn\'t get version: there are only ${this._migrationFiles.length} migrations`)
 
     if (toSubtract) i -= toSubtract

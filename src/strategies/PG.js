@@ -1,22 +1,22 @@
-import { exec } from 'child_process'
-import Pg from 'pg'
-import coPg from 'co-pg'
+const { exec } = require('child_process')
+const Pg = require('pg')
+const coPg = require('co-pg')
 
 const pg = coPg(Pg)
 
-export default class PGStrategy {
+module.exports = class PGStrategy {
   constructor(config) {
     this._config = config
   }
 
   get template() { // eslint-disable-line class-methods-use-this
-    return `export default {
-    async up(client) {
-      client.query(``)
+    return `module.exports = {
+    up(client) {
+      return client.query(\`\`)
     },
 
-    async down(client) {
-      clientquery(``)
+    down(client) {
+      return client.query(\`\`)
     },
   }
 `
@@ -35,7 +35,7 @@ export default class PGStrategy {
   async hasRan(migration) {
     const result = await this.client.queryPromise(
       'SELECT version FROM migrations WHERE version = $1',
-      [migration.version],
+      [migration.version]
     )
 
     return result.rows.length === 1
@@ -45,7 +45,7 @@ export default class PGStrategy {
     await migration.up(this.client)
     await this.client.queryPromise(
       'INSERT INTO migrations VALUES ($1)',
-      [migration.version],
+      [migration.version]
     )
     await exec(`pg_dump -s ${this.client.database} > migrations/schema.sql`)
   }
@@ -54,7 +54,7 @@ export default class PGStrategy {
     await migration.down(this.client)
     await this.client.queryPromise(
       'DELETE FROM migrations WHERE version = $1',
-      [migration.version],
+      [migration.version]
     )
   }
 

@@ -1,37 +1,35 @@
-import fs from 'fs'
-import path from 'path'
-import sinon from 'sinon'
-import rewire from 'rewire'
-import MockDate from 'mockdate'
+const fs = require('fs')
+const path = require('path')
+const sinon = require('sinon')
+const rewire = require('rewire')
+const MockDate = require('mockdate')
 
 const myBirthday = 706669323000
 MockDate.set(myBirthday)
 
-export function setup(mocks) {
+function setup(mocks) {
   // Clean up
   const files = fs.readdirSync('test/migrations')
   files.forEach(file => fs.unlinkSync(`test/migrations/${file}`))
   delete require.cache[path.resolve('test/migrations/index.js')]
 
   // New migrations/index.js
-  fs.writeFileSync('test/migrations/index.js', `
-  import MemoryStrategy from '../../src/strategies/Memory'
+  fs.writeFileSync('test/migrations/index.js',
+`const MemoryStrategy = require('../../src/strategies/Memory')
 
-  export default new MemoryStrategy()
-  `)
+module.exports = new MemoryStrategy()
+`)
 
   const defaultMocks = {
-    console: {
-      ...console,
+    console: Object.assign({}, console, {
       error: sinon.spy(),
-    },
-    process: {
-      ...process,
+    }),
+    process: Object.assign({}, console, {
       cwd: () => `${process.cwd()}/test`,
-    },
+    }),
   }
 
-  const defaultedMocks = { ...defaultMocks, ...mocks }
+  const defaultedMocks = Object.assign({}, defaultMocks, mocks)
 
   const ESMigrate = rewire('../src/ESMigrate.js')
   ESMigrate.__set__('console', defaultedMocks.console)
@@ -49,3 +47,5 @@ export function setup(mocks) {
 
   return { esm, mocks: defaultedMocks }
 }
+
+module.exports = { setup }

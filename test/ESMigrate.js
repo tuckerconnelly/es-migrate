@@ -1,18 +1,18 @@
 /* eslint-disable max-len */
-import fs from 'fs'
-import test from 'blue-tape'
-import sinon from 'sinon'
-import MockDate from 'mockdate'
+const fs = require('fs')
+const test = require('blue-tape')
+const sinon = require('sinon')
+const MockDate = require('mockdate')
 
-import { setup } from './fixtures'
-import MemoryStrategy from '../src/strategies/Memory'
+const { setup } = require('./fixtures')
+const MemoryStrategy = require('../src/strategies/Memory')
 
-test('es-migrate', async nest => {
-  nest.test('…args', async () => {
+test('es-migrate', nest => {
+  nest.test('…args', async assert => {
     const { esm, mocks } = setup()
 
     await esm.run('es-migrate asdf')
-    nest.equal(mocks.console.error.callCount, 1,
+    assert.equal(mocks.console.error.callCount, 1,
       'throws an error if command not recognized')
   })
 
@@ -38,7 +38,7 @@ test('es-migrate', async nest => {
         'creates a migration file')
       assert.equal(migrationFiles[0], '19920524010203-my-migration.js',
         'created migration file has {YYYYMMDDHHMMSS}-{migrationName} as the file name')
-      assert.equal(fileContents, (new MemoryStrategy).template,
+      assert.equal(fileContents, (new MemoryStrategy()).template,
         'creates a migration file with the parsed template as the contents')
     })
   })
@@ -46,7 +46,7 @@ test('es-migrate', async nest => {
   nest.test('…sync', async nest => {
     nest.test('……runs unran migrations', async assert => {
       const { esm } = setup()
-
+  
       await esm.run('es-migrate create test-migration')
       await esm.run('es-migrate create test-migration-2')
       await esm.run('es-migrate sync')
@@ -54,17 +54,17 @@ test('es-migrate', async nest => {
       esm.strategy.up = sinon.stub().returns(Promise.resolve())
       await esm.run('es-migrate create test-migration-3')
       await esm.run('es-migrate sync')
-
+  
       assert.equal(migrationsRun, 2,
         'runs the migrations in the migrations/ folder')
       assert.equal(esm.strategy.up.callCount, 1,
         'doesn\'t run migrations that have already run')
     })
-
+  
     nest.test('……rolls back migrations', async assert => {
       const { esm } = setup()
       const myBirthday = 706669323000
-
+  
       MockDate.set(myBirthday)
       await esm.run('es-migrate create down-1')
       MockDate.set(myBirthday + 1000)
@@ -74,8 +74,8 @@ test('es-migrate', async nest => {
       MockDate.set(myBirthday + 3000)
       await esm.run('es-migrate create down-4')
       await esm.run('es-migrate sync')
-
-      await esm.run(`es-migrate sync 19920524010205-down-3`)
+  
+      await esm.run('es-migrate sync 19920524010205-down-3')
       const migrationsRunAfterDown = Object.keys(esm.strategy.migrations).length
       const oldDown = esm.strategy.down
       const downStub = sinon.stub().returns(Promise.resolve())
@@ -84,7 +84,7 @@ test('es-migrate', async nest => {
       esm.strategy.down = oldDown
       await esm.run('es-migrate sync 19920524010203-down-1')
       const migrationsRunAfterSyncFirst = Object.keys(esm.strategy.migrations).length
-
+  
       assert.equal(migrationsRunAfterDown, 3,
         'rolls back the last migration if no count supplied')
       assert.equal(downStub.callCount, 0,

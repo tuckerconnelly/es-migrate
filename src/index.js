@@ -1,3 +1,3 @@
-/* eslint-disable import/prefer-default-export */
-
-export { default as PGStrategy } from './strategies/PG'
+module.exports = {
+  PGStrategy: require('./strategies/PG'),
+}

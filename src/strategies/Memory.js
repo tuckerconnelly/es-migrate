@@ -1,8 +1,8 @@
 // For tests
 
-export default class MemoryStrategy {
+module.exports = class MemoryStrategy {
   get template() { // eslint-disable-line class-methods-use-this
-    return `export default {
+    return `module.exports = {
   async up(client) {
 
   },

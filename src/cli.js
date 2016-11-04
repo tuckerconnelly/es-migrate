@@ -1,6 +1,6 @@
-#!/usr/bin/env babel-node --
+#!/usr/bin/env node --harmony
 
-import ESMigrate from './ESMigrate'
+const ESMigrate = require('./ESMigrate')
 
 const esMigrate = new ESMigrate()
 esMigrate.run(process.argv.slice(2)).catch(console.error)

@@ -2,13 +2,10 @@
   "name": "es-migrate",
   "version": "0.2.17",
   "description": "Minimalistic database-agnostic es6 migrations.",
-  "bin": "lib/cli.js",
-  "main": "lib/index.js",
+  "bin": "src/cli.js",
+  "main": "src/index.js",
   "scripts": {
-    "test": "tape-watch test/*.js test/strategies/*.js -r babel-register -r babel-polyfill -R blue-tape -p tap-spec",
-    "build": "babel -d lib src",
-    "build:watch": "babel -d lib src -w",
-    "prepublish": "rm -rf lib && npm run build"
+    "test": "node --harmony node_modules/.bin/tape-watch test/*.js test/strategies/*.js -R blue-tape -p tap-spec --harmony"
   },
   "repository": {
     "type": "git",
@@ -22,15 +19,13 @@
     "migrations",
     "migrate"
   ],
+  "engines": {
+    "node": ">=7.0.0"
+  },
   "author": "Tucker Connelly <web@tuckerconnelly.com>",
   "license": "MIT",
   "devDependencies": {
-    "babel-cli": "^6.14.0",
-    "babel-core": "^6.14.0",
     "babel-eslint": "^6.1.2",
-    "babel-plugin-add-module-exports": "^0.2.1",
-    "babel-preset-es2015": "^6.14.0",
-    "babel-preset-stage-1": "^6.13.0",
     "blue-tape": "^1.0.0",
     "eslint": "^3.5.0",
     "eslint-config-airbnb": "^11.1.0",
@@ -45,9 +40,6 @@
     "tap-spec": "^4.1.1",
     "tape": "^4.6.0",
     "tape-watch": "^2.2.3"
-  },
-  "peerDependencies": {
-    "babel-cli": "^6.14.0"
   },
   "optionalDependencies": {
     "co-pg": "^2.0.0",
