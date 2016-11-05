@@ -46,55 +46,56 @@ test('es-migrate', nest => {
         'creates a migration file with the parsed template as the contents')
     })
 
-    nest.test('……sets the version in the config file', async assert => {
-      const configFilename = path.resolve(__dirname, ESMigrate.CONFIG_FILENAME)
+    nest.test('……sets the version in the es-migrate.lock file', async assert => {
+      const lockFilename = path.resolve(__dirname, ESMigrate.LOCK_FILENAME)
       const esm = setup()
       const myBirthday = 706669323000
 
       // execution
       MockDate.set(myBirthday)
       await esm.run('es-migrate create sets-version-in-config-1')
-      delete require.cache[configFilename]
-      const firstVersion = require(configFilename).version
+      const firstVersion = fs.readFileSync(lockFilename, 'utf8')
 
       MockDate.set(myBirthday + 1000)
       await esm.run('es-migrate create sets-version-in-config-2')
-      delete require.cache[configFilename]
-      const secondVersion = require(configFilename).version
+      const secondVersion = fs.readFileSync(lockFilename, 'utf8')
 
       // assertion
-      assert.equal(firstVersion, '19920524010203-sets-version-in-config-1')
-      assert.equal(secondVersion, '19920524010204-sets-version-in-config-2')
+      assert.equal(firstVersion, '19920524010203-sets-version-in-config-1',
+        'sets it when no lock file is present')
+      assert.equal(secondVersion, '19920524010204-sets-version-in-config-2',
+        'sets it when a lockfile already exists')
     })
   })
 
   nest.test('…set', async nest => {
-    nest.test('……set the version in the config file', async assert => {
-      const configFilename = path.resolve(__dirname, ESMigrate.CONFIG_FILENAME)
+    nest.test('……set the version in the lock file', async assert => {
+      const lockFilename = path.resolve(__dirname, ESMigrate.LOCK_FILENAME)
       const esm = setup()
 
       await esm.run('es-migrate create test-set-1')
       await esm.run('es-migrate create test-set-2')
       await esm.run('es-migrate set 19920524010304-test-set-1')
-      delete require.cache[configFilename]
+      const lockVersion = fs.readFileSync(lockFilename, 'utf8')
 
-      assert.equal(require(configFilename).version, '19920524010304-test-set-1')
+      assert.equal(lockVersion, '19920524010304-test-set-1',
+        'sets the version')
     })
 
     nest.test('……throws an error if the version isn\'t found', async assert => {
-      const configFilename = path.resolve(__dirname, ESMigrate.CONFIG_FILENAME)
+      const lockFilename = path.resolve(__dirname, ESMigrate.LOCK_FILENAME)
       const console = { error: sinon.spy() }
       const esm = setup({ console })
     
       await esm.run('es-migrate create test-set-error')
-      delete require.cache[configFilename]
-      const versionBefore = require(configFilename).version
+      const versionBefore = fs.readFileSync(lockFilename, 'utf8')
       await esm.run('es-migrate set notaversion')
-      delete require.cache[configFilename]
-      const versionAfter = require(configFilename).version
+      const versionAfter = fs.readFileSync(lockFilename, 'utf8')
     
-      assert.equal(console.error.callCount, 1)
-      assert.equal(versionBefore, versionAfter)
+      assert.equal(console.error.callCount, 1,
+        'throws an error')
+      assert.equal(versionBefore, versionAfter,
+        'version doesn\'t change')
     })
   })
 
@@ -154,34 +155,34 @@ test('es-migrate', nest => {
   
     nest.test('……`sync -d` (dry run) runs the migration without marking it as `hasRan`', async assert => {
       const esm = setup()
-    
+
       await esm.run('es-migrate create dry-1')
       await esm.run('es-migrate sync -d')
       const migration = { version: fs.readdirSync('test/migrations')[0].split('.')[0] }
-    
+
       assert.ok(!(await esm.strategy.hasRan(migration)))
     })
   })
-  
+
   nest.test('…version', nest => {
     nest.test('……gets the latest version when no args passed', async assert => {
       const mocks = { console: { log: sinon.spy() } }
       const esm = setup(mocks)
       const myBirthday = 706669323000
-  
+
       MockDate.set(myBirthday)
       await esm.run('es-migrate create version-test-1')
       await esm.run('es-migrate version')
       MockDate.set(myBirthday + 1000)
       await esm.run('es-migrate create version-test-2')
       await esm.run('esmigrate version')
-  
+
       assert.equal(mocks.console.log.getCall(1).args[0], '19920524010203-version-test-1',
         'returns the latest version after making a migration')
       assert.equal(mocks.console.log.getCall(3).args[0], '19920524010204-version-test-2',
         'returns the latest version after making a second migration')
     })
-  
+
     nest.test('……-1 gets the previous version', async assert => {
       const mocks = {
         console: { log: sinon.spy() },
@@ -192,17 +193,17 @@ test('es-migrate', nest => {
       }
       const esm = setup(mocks)
       const myBirthday = 706669323000
-  
+
       MockDate.set(myBirthday)
       await esm.run('es-migrate create version-p-test-1')
       MockDate.set(myBirthday + 1000)
       await esm.run('es-migrate create version-p-test-2')
       await esm.run('es-migrate version -1')
-  
+
       assert.equal(mocks.console.log.getCall(2).args[0], '19920524010203-version-p-test-1',
         '-1 returns the previous version')
     })
-  
+
     nest.test('……-2 gets the previous previous version', async assert => {
       const mocks = {
         console: { log: sinon.spy() },
@@ -213,7 +214,7 @@ test('es-migrate', nest => {
       }
       const esm = setup(mocks)
       const myBirthday = 706669323000
-  
+
       MockDate.set(myBirthday)
       await esm.run('es-migrate create version-p-test-1')
       MockDate.set(myBirthday + 1000)
