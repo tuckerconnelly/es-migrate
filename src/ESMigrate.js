@@ -28,7 +28,7 @@ function migrationDir(fileName = '') {
 
 module.exports = class ESMigrate {
   static get CONFIG_FILENAME() { return 'es-migrate.config.js' }
-  static get VALID_COMMANDS() { return ['create', 'sync', 'version'] }
+  static get VALID_COMMANDS() { return ['create', 'sync', 'version', 'set'] }
 
   async run(argv) {
     const input = Array.isArray(argv) ? minimist(argv) : minimist(argv.split(' ').slice(1))
@@ -36,13 +36,14 @@ module.exports = class ESMigrate {
     if (input._.length === 0) {
       console.log(`
 Usage:
-  $ es-migrate [create|sync|version] [name|version] [-d]
+  $ es-migrate [create|sync|version|set] [name|version] [-d]
 
-\`create\` will make a new migration.
-\`sync\` will sync to the specified version (if none is given, latest).
+\`create [name]\` will make a new migration and set the version in the config file
+\`sync\` will sync to the version in the config file
 \`sync -d\` will do a dry run of the sync, running the migration but not adding it to the migrations table (useful for testing)
-\`version\` will get the current version.
+\`version\` will get the current version
 \`version -1\` will get the previous version (-2 will get 2 versions ago, etc.)
+\`set [version]\` will set the version in the config file to the specified version
 `)
       return
     }
@@ -70,6 +71,9 @@ Usage:
   }
 
   _updateVersionInConfig(version) { // eslint-disable-line class-methods-use-this
+    const versionExists = !!this._migrationFiles.filter(file => file === `${version}.js`).length
+    if (!versionExists) return console.error('File for version not found')
+
     const configFilename = path.resolve(process.cwd(), ESMigrate.CONFIG_FILENAME)
     let configFileContents = fs.readFileSync(configFilename, 'utf8')
 
@@ -90,7 +94,7 @@ module.exports.version = '${version}'
   }
 
   _up(input) {
-    const targetVersion = input._[1]
+    const targetVersion = this.strategy.version
     const tsFromTargetVersion = targetVersion && tsFromVersion(targetVersion)
 
     return this._migrationFiles
@@ -111,9 +115,7 @@ module.exports.version = '${version}'
   }
 
   _down(input) {
-    if (!input._[1]) return
-
-    const targetVersion = input._[1]
+    const targetVersion = this.strategy.version
     const tsFromTargetVersion = targetVersion && tsFromVersion(targetVersion)
 
     return this._migrationFiles.reverse()
@@ -175,5 +177,10 @@ module.exports.version = '${version}'
     if (toSubtract) i -= toSubtract
 
     console.log(this._migrationFiles[i].split('.')[0])
+  }
+
+  async set(input) {
+    const targetVersion = input._[1]
+    this._updateVersionInConfig(targetVersion)
   }
 }

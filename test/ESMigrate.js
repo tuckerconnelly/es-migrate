@@ -68,10 +68,40 @@ test('es-migrate', nest => {
     })
   })
 
+  nest.test('…set', async nest => {
+    nest.test('……set the version in the config file', async assert => {
+      const configFilename = path.resolve(__dirname, ESMigrate.CONFIG_FILENAME)
+      const esm = setup()
+
+      await esm.run('es-migrate create test-set-1')
+      await esm.run('es-migrate create test-set-2')
+      await esm.run('es-migrate set 19920524010304-test-set-1')
+      delete require.cache[configFilename]
+
+      assert.equal(require(configFilename).version, '19920524010304-test-set-1')
+    })
+
+    nest.test('……throws an error if the version isn\'t found', async assert => {
+      const configFilename = path.resolve(__dirname, ESMigrate.CONFIG_FILENAME)
+      const console = { error: sinon.spy() }
+      const esm = setup({ console })
+    
+      await esm.run('es-migrate create test-set-error')
+      delete require.cache[configFilename]
+      const versionBefore = require(configFilename).version
+      await esm.run('es-migrate set notaversion')
+      delete require.cache[configFilename]
+      const versionAfter = require(configFilename).version
+    
+      assert.equal(console.error.callCount, 1)
+      assert.equal(versionBefore, versionAfter)
+    })
+  })
+
   nest.test('…sync', async nest => {
     nest.test('……runs unran migrations', async assert => {
       const esm = setup()
-
+  
       await esm.run('es-migrate create test-migration')
       await esm.run('es-migrate create test-migration-2')
       await esm.run('es-migrate sync')
@@ -79,17 +109,17 @@ test('es-migrate', nest => {
       esm.strategy.up = sinon.stub().returns(Promise.resolve())
       await esm.run('es-migrate create test-migration-3')
       await esm.run('es-migrate sync')
-
+  
       assert.equal(migrationsRun, 2,
         'runs the migrations in the migrations/ folder')
       assert.equal(esm.strategy.up.callCount, 1,
         'doesn\'t run migrations that have already run')
     })
-
+  
     nest.test('……rolls back migrations', async assert => {
       const esm = setup()
       const myBirthday = 706669323000
-
+  
       MockDate.set(myBirthday)
       await esm.run('es-migrate create down-1')
       MockDate.set(myBirthday + 1000)
@@ -99,55 +129,59 @@ test('es-migrate', nest => {
       MockDate.set(myBirthday + 3000)
       await esm.run('es-migrate create down-4')
       await esm.run('es-migrate sync')
-
-      await esm.run('es-migrate sync 19920524010205-down-3')
+  
+      await esm.run('es-migrate set 19920524010205-down-3')
+      await esm.run('es-migrate sync')
       const migrationsRunAfterDown = Object.keys(esm.strategy.migrations).length
+  
       const oldDown = esm.strategy.down
       const downStub = sinon.stub().returns(Promise.resolve())
       esm.strategy.down = downStub
-      await esm.run('es-migrate sync 19920524010205-down-3')
+      await esm.run('es-migrate set 19920524010205-down-3')
+      await esm.run('es-migrate sync')
       esm.strategy.down = oldDown
-      await esm.run('es-migrate sync 19920524010203-down-1')
+      await esm.run('es-migrate set 19920524010203-down-1')
+      await esm.run('es-migrate sync')
       const migrationsRunAfterSyncFirst = Object.keys(esm.strategy.migrations).length
-
+  
       assert.equal(migrationsRunAfterDown, 3,
-        'rolls back the last migration if no count supplied')
+        'rolls back the last migration')
       assert.equal(downStub.callCount, 0,
         'doesn\'t roll back a migration if it\'s in an un-ran state')
       assert.equal(migrationsRunAfterSyncFirst, 1,
         'rolls back migrations that haven\'t been ran yet')
     })
-
+  
     nest.test('……`sync -d` (dry run) runs the migration without marking it as `hasRan`', async assert => {
       const esm = setup()
-
+    
       await esm.run('es-migrate create dry-1')
       await esm.run('es-migrate sync -d')
       const migration = { version: fs.readdirSync('test/migrations')[0].split('.')[0] }
-
+    
       assert.ok(!(await esm.strategy.hasRan(migration)))
     })
   })
-
+  
   nest.test('…version', nest => {
     nest.test('……gets the latest version when no args passed', async assert => {
       const mocks = { console: { log: sinon.spy() } }
       const esm = setup(mocks)
       const myBirthday = 706669323000
-
+  
       MockDate.set(myBirthday)
       await esm.run('es-migrate create version-test-1')
       await esm.run('es-migrate version')
       MockDate.set(myBirthday + 1000)
       await esm.run('es-migrate create version-test-2')
       await esm.run('esmigrate version')
-
+  
       assert.equal(mocks.console.log.getCall(1).args[0], '19920524010203-version-test-1',
         'returns the latest version after making a migration')
       assert.equal(mocks.console.log.getCall(3).args[0], '19920524010204-version-test-2',
         'returns the latest version after making a second migration')
     })
-
+  
     nest.test('……-1 gets the previous version', async assert => {
       const mocks = {
         console: { log: sinon.spy() },
@@ -158,17 +192,17 @@ test('es-migrate', nest => {
       }
       const esm = setup(mocks)
       const myBirthday = 706669323000
-
+  
       MockDate.set(myBirthday)
       await esm.run('es-migrate create version-p-test-1')
       MockDate.set(myBirthday + 1000)
       await esm.run('es-migrate create version-p-test-2')
       await esm.run('es-migrate version -1')
-
+  
       assert.equal(mocks.console.log.getCall(2).args[0], '19920524010203-version-p-test-1',
         '-1 returns the previous version')
     })
-
+  
     nest.test('……-2 gets the previous previous version', async assert => {
       const mocks = {
         console: { log: sinon.spy() },
@@ -179,7 +213,7 @@ test('es-migrate', nest => {
       }
       const esm = setup(mocks)
       const myBirthday = 706669323000
-
+  
       MockDate.set(myBirthday)
       await esm.run('es-migrate create version-p-test-1')
       MockDate.set(myBirthday + 1000)

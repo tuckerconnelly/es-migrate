@@ -2,6 +2,7 @@ const fs = require('fs')
 const path = require('path')
 const rewire = require('rewire')
 const MockDate = require('mockdate')
+const merge = require('lodash/merge')
 
 const myBirthday = 706669323000
 MockDate.set(myBirthday)
@@ -27,7 +28,7 @@ module.exports = new MemoryStrategy()
     }),
   }
 
-  const defaultedMocks = Object.assign({}, defaultMocks, mocks)
+  const defaultedMocks = merge({}, defaultMocks, mocks)
 
   const ESMigrate = rewire('../src/ESMigrate.js')
   ESMigrate.__set__('console', defaultedMocks.console)
