@@ -36,7 +36,7 @@ test('es-migrate', nest => {
       const migrationFiles = fs.readdirSync('test/migrations')
       const fileContents = fs.readFileSync(`test/migrations/${migrationFiles[0]}`, 'utf8')
 
-      assert.equal(migrationFiles.length, 2,
+      assert.equal(migrationFiles.length, 1,
         'creates a migration file')
       assert.equal(migrationFiles[0], '19920524010203-my-migration.js',
         'created migration file has {YYYYMMDDHHMMSS}-{migrationName} as the file name')

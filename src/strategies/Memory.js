@@ -28,7 +28,6 @@ module.exports = class MemoryStrategy {
   }
 
   async down(migration, dry) {
-    console.log(dry)
     await migration.down()
     if (!dry) delete this.migrations[migration.version]
   }

@@ -27,6 +27,7 @@ function migrationDir(fileName = '') {
 }
 
 module.exports = class ESMigrate {
+  static get CONFIG_FILENAME() { return 'es-migrate.config.js' }
   static get VALID_COMMANDS() { return ['create', 'sync', 'version'] }
 
   async run(argv) {
@@ -52,9 +53,9 @@ Usage:
     }
 
     try {
-      this.strategy = require(migrationDir('index.js'))
+      this.strategy = require(path.resolve(process.cwd(), ESMigrate.CONFIG_FILENAME))
     } catch (err) {
-      console.error('Couldn\'t read your setup file at migrations/index.js', err)
+      console.error('Couldn\'t read your config file at ./es-migrate.config.js', err)
       return
     }
 
@@ -76,21 +77,21 @@ Usage:
 
     const date = new Date()
 
-    const fileName = '' +
+    const versionName = '' +
       date.getUTCFullYear() +
       zeroPad((date.getUTCMonth() + 1), 2) +
       zeroPad(date.getUTCDate(), 2) +
       zeroPad(date.getUTCHours(), 2) +
       zeroPad(date.getUTCMinutes(), 2) +
       zeroPad(date.getUTCSeconds(), 2) +
-      `-${input._[1]}.js`
+      `-${input._[1]}`
 
     fs.writeFileSync(
-      migrationDir(fileName),
+      migrationDir(`${versionName}.js`),
       this.strategy.template
     )
 
-    console.log(`Created migrations/${fileName}`)
+    console.log(`Created migrations/${versionName}.js`)
   }
 
   async sync(input) {

@@ -7,17 +7,17 @@ const myBirthday = 706669323000
 MockDate.set(myBirthday)
 
 function setup(mocks) {
-  // Clean up
+  // Clean up migrations dir
   const files = fs.readdirSync('test/migrations')
   files.forEach(file => fs.unlinkSync(`test/migrations/${file}`))
-  delete require.cache[path.resolve('test/migrations/index.js')]
 
   // Write new migrations/index.js
-  fs.writeFileSync('test/migrations/index.js',
-`const MemoryStrategy = require('../../src/strategies/Memory')
+  fs.writeFileSync('test/es-migrate.config.js',
+`const MemoryStrategy = require('../src/strategies/Memory')
 
 module.exports = new MemoryStrategy()
 `)
+  delete require.cache[path.resolve('test/es-migrate.config.js')]
 
   // Default the mocks and rewire them
   const defaultMocks = {
