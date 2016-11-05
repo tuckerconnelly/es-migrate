@@ -1,9 +1,11 @@
 /* eslint-disable max-len */
 const fs = require('fs')
+const path = require('path')
 const test = require('blue-tape')
 const sinon = require('sinon')
 const MockDate = require('mockdate')
 
+const ESMigrate = require('../src/ESMigrate')
 const { setup } = require('./fixtures')
 const MemoryStrategy = require('../src/strategies/Memory')
 
@@ -42,6 +44,27 @@ test('es-migrate', nest => {
         'created migration file has {YYYYMMDDHHMMSS}-{migrationName} as the file name')
       assert.equal(fileContents, (new MemoryStrategy()).template,
         'creates a migration file with the parsed template as the contents')
+    })
+
+    nest.test('……sets the version in the config file', async assert => {
+      const configFilename = path.resolve(__dirname, ESMigrate.CONFIG_FILENAME)
+      const esm = setup()
+      const myBirthday = 706669323000
+
+      // execution
+      MockDate.set(myBirthday)
+      await esm.run('es-migrate create sets-version-in-config-1')
+      delete require.cache[configFilename]
+      const firstVersion = require(configFilename).version
+
+      MockDate.set(myBirthday + 1000)
+      await esm.run('es-migrate create sets-version-in-config-2')
+      delete require.cache[configFilename]
+      const secondVersion = require(configFilename).version
+
+      // assertion
+      assert.equal(firstVersion, '19920524010203-sets-version-in-config-1')
+      assert.equal(secondVersion, '19920524010204-sets-version-in-config-2')
     })
   })
 
