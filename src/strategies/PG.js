@@ -41,21 +41,25 @@ module.exports = class PGStrategy {
     return result.rows.length === 1
   }
 
-  async up(migration) {
+  async up(migration, dry) {
     await migration.up(this.client)
-    await this.client.queryPromise(
-      'INSERT INTO migrations VALUES ($1)',
-      [migration.version]
-    )
+    if (!dry) {
+      await this.client.queryPromise(
+        'INSERT INTO migrations VALUES ($1)',
+        [migration.version]
+      )
+    }
     await exec(`pg_dump -s ${this.client.database} > migrations/schema.sql`)
   }
 
-  async down(migration) {
+  async down(migration, dry) {
     await migration.down(this.client)
-    await this.client.queryPromise(
-      'DELETE FROM migrations WHERE version = $1',
-      [migration.version]
-    )
+    if (!dry) {
+      await this.client.queryPromise(
+        'DELETE FROM migrations WHERE version = $1',
+        [migration.version]
+      )
+    }
   }
 
   end() {

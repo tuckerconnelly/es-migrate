@@ -35,11 +35,13 @@ module.exports = class ESMigrate {
     if (input._.length === 0) {
       console.log(`
 Usage:
-  $ es-migrate [create|sync|version] [name|version]
+  $ es-migrate [create|sync|version] [name|version] [-d]
 
-\`create\` will make a new migration. \`sync\` will sync to the specified version (if none is given, latest). \`version\` will get the current version.
-
-\`es-migrate version -1\` will get the previous version (-2 will get 2 versions ago, etc.)
+\`create\` will make a new migration.
+\`sync\` will sync to the specified version (if none is given, latest).
+\`sync -d\` will do a dry run of the sync, running the migration but not adding it to the migrations table (useful for testing)
+\`version\` will get the current version.
+\`version -1\` will get the previous version (-2 will get 2 versions ago, etc.)
 `)
       return
     }
@@ -108,8 +110,10 @@ Usage:
         if (targetVersion && tsFromVersion(migration.version) > tsFromTargetVersion) return Promise.resolve()
         if (await this.strategy.hasRan(migration)) return Promise.resolve()
 
-        console.log(`Running ${migration.version}`)
-        return this.strategy.up(migration)
+        input.d ?
+          console.log(`Dry running ${migration.version}`) :
+          console.log(`Running ${migration.version}`)
+        return this.strategy.up(migration, input.d)
       })
       // Run promises in sequence
       .reduce((prev, curr) => prev.then(() => curr), Promise.resolve())
@@ -129,8 +133,10 @@ Usage:
         if (targetVersion && tsFromVersion(migration.version) <= tsFromTargetVersion) return Promise.resolve()
         if (!(await this.strategy.hasRan(migration))) return Promise.resolve()
 
-        console.log(`Rolling back ${migration.version}`)
-        return this.strategy.down(migration)
+        input.d ?
+          console.log(`Dry rolling back ${migration.version}`) :
+          console.log(`Rolling back ${migration.version}`)
+        return this.strategy.down(migration, input.d)
       })
       // Run promises in sequence
       .reduce((prev, curr) => prev.then(() => curr), Promise.resolve())

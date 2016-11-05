@@ -9,7 +9,8 @@ const MemoryStrategy = require('../src/strategies/Memory')
 
 test('es-migrate', nest => {
   nest.test('…args', async assert => {
-    const { esm, mocks } = setup()
+    const mocks = { console: { error: sinon.spy() } }
+    const esm = setup(mocks)
 
     await esm.run('es-migrate asdf')
     assert.equal(mocks.console.error.callCount, 1,
@@ -18,7 +19,8 @@ test('es-migrate', nest => {
 
   nest.test('…create', nest => {
     nest.test('……throws an error if migrationName not given', async assert => {
-      const { esm, mocks } = setup()
+      const mocks = { console: { error: sinon.spy() } }
+      const esm = setup(mocks)
 
       await esm.run('es-migrate create')
       assert.equal(mocks.console.error.callCount, 1,
@@ -26,7 +28,7 @@ test('es-migrate', nest => {
     })
 
     nest.test('……creates migration files', async assert => {
-      const { esm } = setup()
+      const esm = setup()
       const myBirthday = 706669323000
       MockDate.set(myBirthday)
 
@@ -45,8 +47,8 @@ test('es-migrate', nest => {
 
   nest.test('…sync', async nest => {
     nest.test('……runs unran migrations', async assert => {
-      const { esm } = setup()
-  
+      const esm = setup()
+
       await esm.run('es-migrate create test-migration')
       await esm.run('es-migrate create test-migration-2')
       await esm.run('es-migrate sync')
@@ -54,17 +56,17 @@ test('es-migrate', nest => {
       esm.strategy.up = sinon.stub().returns(Promise.resolve())
       await esm.run('es-migrate create test-migration-3')
       await esm.run('es-migrate sync')
-  
+
       assert.equal(migrationsRun, 2,
         'runs the migrations in the migrations/ folder')
       assert.equal(esm.strategy.up.callCount, 1,
         'doesn\'t run migrations that have already run')
     })
-  
+
     nest.test('……rolls back migrations', async assert => {
-      const { esm } = setup()
+      const esm = setup()
       const myBirthday = 706669323000
-  
+
       MockDate.set(myBirthday)
       await esm.run('es-migrate create down-1')
       MockDate.set(myBirthday + 1000)
@@ -74,7 +76,7 @@ test('es-migrate', nest => {
       MockDate.set(myBirthday + 3000)
       await esm.run('es-migrate create down-4')
       await esm.run('es-migrate sync')
-  
+
       await esm.run('es-migrate sync 19920524010205-down-3')
       const migrationsRunAfterDown = Object.keys(esm.strategy.migrations).length
       const oldDown = esm.strategy.down
@@ -84,7 +86,7 @@ test('es-migrate', nest => {
       esm.strategy.down = oldDown
       await esm.run('es-migrate sync 19920524010203-down-1')
       const migrationsRunAfterSyncFirst = Object.keys(esm.strategy.migrations).length
-  
+
       assert.equal(migrationsRunAfterDown, 3,
         'rolls back the last migration if no count supplied')
       assert.equal(downStub.callCount, 0,
@@ -92,11 +94,22 @@ test('es-migrate', nest => {
       assert.equal(migrationsRunAfterSyncFirst, 1,
         'rolls back migrations that haven\'t been ran yet')
     })
+
+    nest.test('……`sync -d` (dry run) runs the migration without marking it as `hasRan`', async assert => {
+      const esm = setup()
+
+      await esm.run('es-migrate create dry-1')
+      await esm.run('es-migrate sync -d')
+      const migration = { version: fs.readdirSync('test/migrations')[0].split('.')[0] }
+
+      assert.ok(!(await esm.strategy.hasRan(migration)))
+    })
   })
 
   nest.test('…version', nest => {
     nest.test('……gets the latest version when no args passed', async assert => {
-      const { esm, mocks } = setup({ console: { log: sinon.spy() } })
+      const mocks = { console: { log: sinon.spy() } }
+      const esm = setup(mocks)
       const myBirthday = 706669323000
 
       MockDate.set(myBirthday)
@@ -113,13 +126,14 @@ test('es-migrate', nest => {
     })
 
     nest.test('……-1 gets the previous version', async assert => {
-      const { esm, mocks } = setup({
+      const mocks = {
         console: { log: sinon.spy() },
         process: {
           argv: ['', 'es-migrate', 'version', '-1'],
           cwd: () => `${process.cwd()}/test`,
         },
-      })
+      }
+      const esm = setup(mocks)
       const myBirthday = 706669323000
 
       MockDate.set(myBirthday)
@@ -133,13 +147,14 @@ test('es-migrate', nest => {
     })
 
     nest.test('……-2 gets the previous previous version', async assert => {
-      const { esm, mocks } = setup({
+      const mocks = {
         console: { log: sinon.spy() },
         process: {
           argv: ['', 'es-migrate', 'version', '-2'],
           cwd: () => `${process.cwd()}/test`,
         },
-      })
+      }
+      const esm = setup(mocks)
       const myBirthday = 706669323000
 
       MockDate.set(myBirthday)

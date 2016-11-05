@@ -1,6 +1,5 @@
 const fs = require('fs')
 const path = require('path')
-const sinon = require('sinon')
 const rewire = require('rewire')
 const MockDate = require('mockdate')
 
@@ -13,18 +12,17 @@ function setup(mocks) {
   files.forEach(file => fs.unlinkSync(`test/migrations/${file}`))
   delete require.cache[path.resolve('test/migrations/index.js')]
 
-  // New migrations/index.js
+  // Write new migrations/index.js
   fs.writeFileSync('test/migrations/index.js',
 `const MemoryStrategy = require('../../src/strategies/Memory')
 
 module.exports = new MemoryStrategy()
 `)
 
+  // Default the mocks and rewire them
   const defaultMocks = {
-    console: Object.assign({}, console, {
-      error: sinon.spy(),
-    }),
-    process: Object.assign({}, console, {
+    console,
+    process: Object.assign({}, process, {
       cwd: () => `${process.cwd()}/test`,
     }),
   }
@@ -37,6 +35,7 @@ module.exports = new MemoryStrategy()
 
   const esm = new ESMigrate()
 
+  // Patch run to update the mock date after each run (to emulate time between runs)
   const oldRun = esm.run
   esm.run = async (...args) => {
     await oldRun.apply(esm, args)
@@ -45,7 +44,7 @@ module.exports = new MemoryStrategy()
     MockDate.set(Date.now() + oneMinute)
   }
 
-  return { esm, mocks: defaultedMocks }
+  return esm
 }
 
 module.exports = { setup }

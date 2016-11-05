@@ -12,11 +12,13 @@ npm -D i es-migrate
 es-migrate
 
 Usage:
-  $ es-migrate [create|sync|version] [name|version]
+  $ es-migrate [create|sync|version] [name|version] [-d]
 
-`create` will make a new migration. `sync` will sync to the specified version (if none is given, latest). `version` will get the current version.
-
-`es-migrate version -1` will get the previous version (-2 will get 2 versions ago, etc.)
+`create` will make a new migration.
+`sync` will sync to the specified version (if none is given, latest).
+`sync -d` will do a dry run of the sync, running the migration but not adding it to the migrations table (useful for testing)
+`version` will get the current version.
+`version -1` will get the previous version (-2 will get 2 versions ago, etc.)
 ```
 
 ## Usage
@@ -72,14 +74,14 @@ export default class MyStrategy {
     // returns true if the passed migration has run, false if not
   }
 
-  async up(migration) {
+  async up(migration, dry) {
     await migration.up()
-    // Then tell the database the migration has run
+    // If not dry, then tell the database the migration has run
   }
 
-  async down(migration) {
+  async down(migration, dry) {
     await migration.down()
-    // Then delete the migration from the database
+    // If not dry, then delete the migration from the database
   }
 
   async end() {
