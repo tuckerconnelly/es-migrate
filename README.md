@@ -30,11 +30,11 @@ Usage:
 - It should be easy to plug in a new database strategy
 - It should keep up to date with the latest ES features
 
-## Usage
+## Setup
 
-Create a git submodule at `./migrations/`--this will hold your migrations.
+Create a git submodule at `./migrations/`. This will hold your migrations, and needs to be a git repo so the migrations still exist if you decide to revert your main codebase to a previous version/commit.
 
-Create a config file at `{cwd}/es-migrate.config.js` that looks something like this:
+Next create a config file at `[project dir]/es-migrate.config.js` that looks like this:
 
 ```js
 const { PGStrategy } = require('es-migrate')
@@ -42,11 +42,14 @@ const { PGStrategy } = require('es-migrate')
 module.exports = new  PGStrategy('postgres://username:password@localhost/dbname')
 ```
 
-Then you can:
+You can plug in any number of strategies to support other databases (see below), but currently only Postgres is supported.
+
+## Usage
+
+Create a migration file using
 
 ```
 es-migrate create my-migration
-es-migrate sync
 ```
 
 This will create a migration file at `migrations/` that looks like this:
@@ -63,17 +66,19 @@ module.exports = {
 }
 ```
 
-The `up` method gets run when advancing the database version, and the `down` method gets run when rolling back the version.
+Modify the `up` method to describe how to move the database from its current state to the required state.  Modify the `down` method so whatever's done in the `up` method can be rolled back.
 
----
+`es-migrate create [version]` will also create a lock file `es-migrate.lock` with the new database version.
 
-`es-migrate create [version]` will also create a lock file `es-migrate.lock` with the new database version. When you commit that lock file, you're saying, this version of the code depends on this version of the database.
+Run `es-migrate sync` to sync the database to the version in the lockfile (should run your most recent migration).
 
-Then, if something goes wrong, you can revert your code and run `es-migrate sync` and know that the database is set to the correct version.
+If you want to run the migration without marking it as "has already ran" so you can run it continuously, you can use `es-migrate sync -d`. You can use this to test your migration until it's ready to be committed.
 
-## The migrations/ folder
+## When shit hits the fan
 
-The migrations/ folder should be a [git submodule](https://git-scm.com/docs/git-submodule). This is so if you revert your main code, and the database needs to roll back to a previous version, the migrations and their `down` commands are still available.
+So you've been using the workflow above, creating migrations and syncing to them. But something went wrong in production and you need to roll back the code and the database.
+
+You can do `git revert abcdef` to revert the problem commit, and then `es-migrate sync` to sync to the previous lockfile.
 
 ## Using with other databases
 
