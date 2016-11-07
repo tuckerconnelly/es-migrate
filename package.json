@@ -27,12 +27,12 @@
   "devDependencies": {
     "babel-eslint": "^6.1.2",
     "blue-tape": "^1.0.0",
-    "eslint": "^3.5.0",
-    "eslint-config-airbnb": "^11.1.0",
+    "eslint": "^3.9.1",
+    "eslint-config-airbnb": "^12.0.0",
     "eslint-plugin-babel": "^3.3.0",
-    "eslint-plugin-import": "^1.15.0",
-    "eslint-plugin-jsx-a11y": "^2.2.2",
-    "eslint-plugin-react": "^6.2.2",
+    "eslint-plugin-import": "^2.1.0",
+    "eslint-plugin-jsx-a11y": "^2.2.3",
+    "eslint-plugin-react": "^6.6.0",
     "lodash": "^4.16.6",
     "mock-fs": "^3.11.0",
     "mockdate": "^1.0.4",
@@ -47,6 +47,7 @@
     "pg": "^6.1.0"
   },
   "dependencies": {
+    "lodash": "^4.16.6",
     "minimist": "^1.2.0"
   }
 }
