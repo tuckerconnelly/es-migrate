@@ -152,14 +152,29 @@ test('es-migrate', nest => {
       assert.equal(migrationsRunAfterSyncFirst, 1,
         'rolls back migrations that haven\'t been ran yet')
     })
-  
-    nest.test('……`sync -d` (dry run) runs the migration without marking it as `hasRan`', async assert => {
+    
+    nest.test('runs migrations even if there\'s a newline at the end of the lockfile', async assert => {
       const esm = setup()
 
+      await esm.run('es-migrate create test-migration')
+      await esm.run('es-migrate create test-migration-2')
+      fs.writeFileSync(
+        path.resolve(__dirname, './es-migrate.lock'),
+        '19920524011106-test-migration-2\n'
+      )
+      await esm.run('es-migrate sync')
+      const migrationsRun = Object.keys(esm.strategy.migrations).length
+
+      assert.equal(migrationsRun, 2, 'runs migrations')
+    })
+
+    nest.test('……`sync -d` (dry run) runs the migration without marking it as `hasRan`', async assert => {
+      const esm = setup()
+    
       await esm.run('es-migrate create dry-1')
       await esm.run('es-migrate sync -d')
       const migration = { version: fs.readdirSync('test/migrations')[0].split('.')[0] }
-
+    
       assert.ok(!(await esm.strategy.hasRan(migration)))
     })
   })
@@ -169,20 +184,20 @@ test('es-migrate', nest => {
       const mocks = { console: { log: sinon.spy() } }
       const esm = setup(mocks)
       const myBirthday = 706669323000
-
+  
       MockDate.set(myBirthday)
       await esm.run('es-migrate create version-test-1')
       await esm.run('es-migrate version')
       MockDate.set(myBirthday + 1000)
       await esm.run('es-migrate create version-test-2')
       await esm.run('esmigrate version')
-
+  
       assert.equal(mocks.console.log.getCall(1).args[0], '19920524010203-version-test-1',
         'returns the latest version after making a migration')
       assert.equal(mocks.console.log.getCall(3).args[0], '19920524010204-version-test-2',
         'returns the latest version after making a second migration')
     })
-
+  
     nest.test('……-1 gets the previous version', async assert => {
       const mocks = {
         console: { log: sinon.spy() },
@@ -193,17 +208,17 @@ test('es-migrate', nest => {
       }
       const esm = setup(mocks)
       const myBirthday = 706669323000
-
+  
       MockDate.set(myBirthday)
       await esm.run('es-migrate create version-p-test-1')
       MockDate.set(myBirthday + 1000)
       await esm.run('es-migrate create version-p-test-2')
       await esm.run('es-migrate version -1')
-
+  
       assert.equal(mocks.console.log.getCall(2).args[0], '19920524010203-version-p-test-1',
         '-1 returns the previous version')
     })
-
+  
     nest.test('……-2 gets the previous previous version', async assert => {
       const mocks = {
         console: { log: sinon.spy() },

@@ -2,6 +2,7 @@
 
 const path = require('path')
 const fs = require('fs')
+const trim = require('lodash').trim
 
 const minimist = require('minimist')
 
@@ -74,7 +75,7 @@ Usage:
     try {
       const lockFilename = path.resolve(process.cwd(), 'es-migrate.lock')
       fs.accessSync(lockFilename)
-      return fs.readFileSync(lockFilename, 'utf8')
+      return trim(fs.readFileSync(lockFilename, 'utf8'))
     } catch (err) {
       return ''
     }
