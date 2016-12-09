@@ -22,7 +22,7 @@ Usage:
 `set [version]` will set the version in the config file to the specified version
 ```
 
-## Philosophy
+### Philosophy
 
 - Each commit of your code should be *declaratively* associated with a version of your database
 - Syncing your database to your code should be as easy as `es-migrate sync`
@@ -30,7 +30,7 @@ Usage:
 - It should be easy to plug in a new database strategy
 - It should keep up to date with the latest ES features
 
-## Setup
+### Setup
 
 Create a git submodule at `./migrations/`. This will hold your migrations, and needs to be a git repo so the migrations still exist if you decide to revert your main codebase to a previous version/commit.
 
@@ -44,7 +44,7 @@ module.exports = new  PGStrategy('postgres://username:password@localhost/dbname'
 
 You can plug in any number of strategies to support other databases (see below), but currently only Postgres is supported.
 
-## Usage
+### Usage
 
 Create a migration file using
 
@@ -74,13 +74,13 @@ Run `es-migrate sync` to sync the database to the version in the lockfile (shoul
 
 If you want to run the migration without marking it as "has already ran" so you can run it continuously, you can use `es-migrate sync -d`. You can use this to test your migration until it's ready to be committed.
 
-## When shit hits the fan
+### When shit hits the fan
 
 So you've been using the workflow above, creating migrations and syncing to them. But something went wrong in production and you need to roll back the code and the database.
 
 You can do `git revert abcdef` to revert the problem commit, and then `es-migrate sync` to sync to the previous lockfile.
 
-## Using with other databases
+### Using with other databases
 
 If you want to connect to another database like MongoDB, you'll need to write a custom strategy:
 
@@ -127,5 +127,9 @@ See the `strategies/` folder for examples.
 
 Will gladly accept PRs for additional strategies :)
 
-## License
+### Connect
+
+Follow the creator on Twitter, [@TuckerConnelly](https://twitter.com/TuckerConnelly)
+
+### License
 MIT
