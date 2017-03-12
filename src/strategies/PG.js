@@ -11,14 +11,14 @@ module.exports = class PGStrategy {
 
   get template() { // eslint-disable-line class-methods-use-this
     return `module.exports = {
-    up(client) {
-      return client.query(\`\`)
-    },
+  up(client) {
+    return client.query(\`\`)
+  },
 
-    down(client) {
-      return client.query(\`\`)
-    },
-  }
+  down(client) {
+    return client.query(\`\`)
+  },
+}
 `
   }
 
