@@ -37,11 +37,10 @@ module.exports = class ESMigrate {
     if (input._.length === 0) {
       console.log(`
 Usage:
-  $ es-migrate [create|sync|version|set] [name|version] [-d]
+  $ es-migrate [create|sync|version|set] [name|version]
 
 \`create [name]\` will make a new migration and set the version in the config file
 \`sync\` will sync to the version in the config file
-\`sync -d\` will do a dry run of the sync, running the migration but not adding it to the migrations table (useful for testing)
 \`version\` will get the current version
 \`version -1\` will get the previous version (-2 will get 2 versions ago, etc.)
 \`set [version]\` will set the version in the config file to the specified version
@@ -93,7 +92,7 @@ Usage:
     return version
   }
 
-  _up(input) {
+  _up() {
     const tsFromTargetVersion = this._version && tsFromVersion(this._version)
 
     return this._migrationFiles
@@ -104,16 +103,14 @@ Usage:
         if (this._version && tsFromVersion(migration.version) > tsFromTargetVersion) return Promise.resolve()
         if (await this.strategy.hasRan(migration)) return Promise.resolve()
 
-        input.d ?
-          console.log(`Dry running ${migration.version}`) :
-          console.log(`Running ${migration.version}`)
-        return this.strategy.up(migration, input.d)
+        console.log(`Running ${migration.version}`)
+        return this.strategy.up(migration)
       })
       // Run promises in sequence
       .reduce((prev, curr) => prev.then(() => curr), Promise.resolve())
   }
 
-  _down(input) {
+  _down() {
     const tsFromTargetVersion = this._version && tsFromVersion(this._version)
 
     return this._migrationFiles.reverse()
@@ -124,10 +121,8 @@ Usage:
         if (this._version && tsFromVersion(migration.version) <= tsFromTargetVersion) return Promise.resolve()
         if (!(await this.strategy.hasRan(migration))) return Promise.resolve()
 
-        input.d ?
-          console.log(`Dry rolling back ${migration.version}`) :
-          console.log(`Rolling back ${migration.version}`)
-        return this.strategy.down(migration, input.d)
+        console.log(`Rolling back ${migration.version}`)
+        return this.strategy.down(migration)
       })
       // Run promises in sequence
       .reduce((prev, curr) => prev.then(() => curr), Promise.resolve())
@@ -160,9 +155,9 @@ Usage:
     console.log(`Created migrations/${versionName}.js`)
   }
 
-  async sync(input) {
-    await this._up(input)
-    await this._down(input)
+  async sync() {
+    await this._up()
+    await this._down()
   }
 
   async version() {

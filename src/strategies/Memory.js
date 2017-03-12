@@ -22,14 +22,14 @@ module.exports = class MemoryStrategy {
     return !!this.migrations[migration.version]
   }
 
-  async up(migration, dry) {
+  async up(migration) {
     await migration.up()
-    if (!dry) this.migrations[migration.version] = true
+    this.migrations[migration.version] = true
   }
 
-  async down(migration, dry) {
+  async down(migration) {
     await migration.down()
-    if (!dry) delete this.migrations[migration.version]
+    delete this.migrations[migration.version]
   }
 
   async end() {}
